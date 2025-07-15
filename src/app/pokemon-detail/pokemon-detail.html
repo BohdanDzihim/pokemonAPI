@@ -1,0 +1,12 @@
+<div *ngIf="pokemon">
+  <h2>{{ pokemon.name | titlecase }}</h2>
+  <img [src]="pokemon.sprites.front_default" alt="{{ pokemon.name }}" />
+  <p>Height: {{ pokemon.height }}</p>
+  <p>Weight: {{ pokemon.weight }}</p>
+  <p>Types:
+    <span *ngFor="let t of pokemon.types">
+      {{ t.type.name }}
+    </span>
+  </p>
+</div>
+<a [routerLink]="['/']">← Back to Home</a>
