@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './shared/header/header.component';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet],
-  template: '<router-outlet></router-outlet>'
+  imports: [RouterOutlet, HeaderComponent],
+  templateUrl: './app.component.html'
 })
 export class App {
-  protected title = 'pokeapi';
+  
 }

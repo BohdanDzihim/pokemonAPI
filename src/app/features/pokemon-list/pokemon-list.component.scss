@@ -1,0 +1,145 @@
+li {
+  list-style: none;
+  margin: 1rem;
+}
+
+.sort-container {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 2rem;
+}
+
+.sort-select {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid #2a75bb;
+  background-color: #fff;
+  color: #2a75bb;
+  font-weight: bold;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f0f8ff;
+  }
+
+  &:focus {
+    border-color: #ffcb05;
+    box-shadow: 0 0 0 2px rgba(255, 203, 5, 0.4);
+  }
+
+  option {
+    background-color: #fff;
+    color: #2a75bb;
+    font-weight: normal;
+  }
+}
+
+.pokemon-container {
+  display: flex; 
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.error-box {
+  max-width: fit-content;
+  margin: 2rem auto;
+  background-color: #ffdddd;
+  color: #a70000;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ff0000;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.pokemon {
+  display: block;
+  border: 1px gray solid;
+  border-radius: 1rem;
+  text-align: center;
+  box-sizing: border-box;
+  width: 350px;
+  box-shadow: 1px 1px 5px gray;
+  font-family: 'Segoe UI', sans-serif;
+
+  a {
+    text-decoration: none;
+    color: black;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  p {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  img {
+    height: 200px;
+    width: 200px;
+    margin: 2rem;
+  }
+
+  .moves{
+    padding: 0.75rem;
+    border-radius: 1rem;
+    background-color: rgba(202, 19, 19, 0.85);
+    color: white;
+  }
+
+  &:hover {
+    box-shadow: 1px 1px 5px red;
+  }
+}
+
+.floating-button {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(202, 19, 19, 0.85);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  font-size: 2rem;
+  font-weight: bold;
+
+  &:hover {
+    background-color: darkred;
+  }
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 5px solid rgba(0, 0, 0, 0.1);
+  border-top-color: red;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

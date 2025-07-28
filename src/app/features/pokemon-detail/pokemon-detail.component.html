@@ -1,0 +1,21 @@
+@if (pokemon) {
+  <div class="pokemon-detail">
+    <h2>{{ pokemon.name | titlecase }}</h2>
+    <img [src]="pokemon.sprites.other.dream_world.front_default" alt="{{ pokemon.name }}" />
+    <p><b>Height:</b> {{ pokemon.height }}</p>
+    <p><b>Weight:</b> {{ pokemon.weight }}</p>
+    <p><b>Types:</b>
+      @for (t of pokemon.types; track t.type.name) {
+        <span>{{ t.type.name }}</span>
+      }
+    </p>
+    <a [routerLink]="['/']">← Back to Home</a>
+  </div>
+} @else if (errorMessage) {
+  <div class="error-container">
+    <div class="error-box">
+      {{ errorMessage }}
+    </div>
+    <a [routerLink]="['/']">← Back to Home</a>
+  </div>
+}
