@@ -3,7 +3,7 @@ import { Pokemon } from '../../core/services/pokemon.service';
 import { CommonModule } from '@angular/common';
 import { forkJoin, Observable } from 'rxjs';
 import { RouterModule } from '@angular/router';
-import { PokemonDetails } from '../../shared/types/pokemon.model';
+import { PokemonDetails, PokemonListResult } from '../../shared/types/pokemon.model';
 
 @Component({
   selector: 'app-root',
@@ -66,7 +66,7 @@ export class PokemonList implements OnInit {
       next: (data) => {
         const list = data.results;
 
-        const detailRequests = list.map((element: any) =>
+        const detailRequests = list.map((element: PokemonListResult) =>
           this.pokemonService.getPokemonDetails(element.url)
         );
 

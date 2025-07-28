@@ -7,11 +7,15 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class Pokemon {
-
   constructor(private http: HttpClient) { }
 
+  static readonly BASE_URL = 'https://pokeapi.co/api/v2/';
+  static readonly ENDPOINTS = {
+    POKEMON: 'pokemon',
+  } as const;
+
   getPokemons(limit: number, offset: number): Observable<PokemonListResponse> {
-    return this.http.get<PokemonListResponse>(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`);
+    return this.http.get<PokemonListResponse>(`${Pokemon.BASE_URL}${Pokemon.ENDPOINTS.POKEMON}?limit=${limit}&offset=${offset}`);
   }
 
   getPokemonDetails(url: string): Observable<PokemonDetails> {
@@ -19,6 +23,6 @@ export class Pokemon {
   }
 
   getPokemonDetailsByName(name: string): Observable<PokemonDetails> {
-    return this.http.get<PokemonDetails>(`https://pokeapi.co/api/v2/pokemon/${name}`);
+    return this.http.get<PokemonDetails>(`${Pokemon.BASE_URL}${Pokemon.ENDPOINTS.POKEMON}/${name}`);
   }
 }
