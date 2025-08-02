@@ -1,0 +1,37 @@
+<div class="sort-container">
+  <select class="sort-select" (change)="onSortChange($event)">
+    <option value="name-asc">Sort by Name (A-Z)</option>
+    <option value="moves-asc">Sort by Moves (A-Z)</option>
+    <option value="name-desc">Sort by Name (Z-A)</option>
+  </select>
+</div>
+@if (loading) {
+  <div class="spinner-container">
+    <div class="spinner"></div>
+  </div>
+}
+@else {
+  @if (errorMessage) {
+    <div class="error-box">
+      {{ errorMessage }}
+    </div>
+  } 
+  @else {
+    <ul class="pokemon-container">
+      @for (p of pokemons; track p.name) {
+        <li class="pokemon">
+          <a [routerLink]="['/pokemon', p.name]">
+            <img [src]="p.sprites.other.dream_world.front_default" alt="{{ p.name }}" />
+            <h1>{{ p.name | titlecase }}</h1>
+          </a>
+          <p>
+            @for (t of p.moves.slice(0,2); track t.move.name) {          
+              <h2 class="moves">{{ t.move.name }}</h2>
+            }
+          </p>
+        </li>
+      }
+    </ul>
+  }
+}
+<button class="floating-button" (click)="fetchRandomPokemons()" *ngIf="!loading">Reload</button>
