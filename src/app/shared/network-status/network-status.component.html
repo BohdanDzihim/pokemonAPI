@@ -1,0 +1,6 @@
+<div class="signal-icon" ngClass="{ 'offline': !isOnline }">
+  <span class="bar bar-1" [class.active]="signalBars >= 1"></span>
+  <span class="bar bar-2" [class.active]="signalBars >= 2"></span>
+  <span class="bar bar-3" [class.active]="signalBars >= 3"></span>
+  <span class="bar bar-4" [class.active]="signalBars >= 4"></span>
+</div>

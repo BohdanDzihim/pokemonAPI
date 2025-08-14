@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Pokemon } from '../../core/services/pokemon.service';
 import { CommonModule } from '@angular/common';
-import { forkJoin, Observable } from 'rxjs';
 import { RouterModule } from '@angular/router';
 import { PokemonDetails, PokemonListResult } from '../../shared/types/pokemon.model';
+import { from, mergeMap, catchError, EMPTY, toArray } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -58,44 +58,52 @@ export class PokemonList implements OnInit {
   fetchRandomPokemons(): void {
     this.loading = true;
     this.errorMessage = null;
-
-    const randomOffset = Math.floor(Math.random() * 100);
+  
+    const offset = Math.floor(Math.random() * 100);
     const limit = Math.floor(Math.random() * 6) + 10;
 
-    this.pokemonService.getPokemons(limit, randomOffset).subscribe({
+    this.pokemonService.getPokemons(limit, offset).subscribe({
       next: (data) => {
         const list = data.results;
+        const hasPikachu = list.some(e => e.name.toLowerCase() === 'pikachu');
+        const requests = [
+          ...(hasPikachu ? [] : [this.pokemonService.getPokemonDetails('https://pokeapi.co/api/v2/pokemon/25/')]),
+          ...list.map((e: PokemonListResult) => this.pokemonService.getPokemonDetails(e.url))
+        ];
 
-        const detailRequests = list.map((element: PokemonListResult) =>
-          this.pokemonService.getPokemonDetails(element.url)
-        );
-
-        forkJoin(detailRequests as Observable<PokemonDetails>[]).subscribe({
-          next: (results: PokemonDetails[]) => {
-            this.pokemons = [...results];
-            this.sortPokemons();
-            console.log(this.pokemons);
-            this.loading = false;
-          }, 
-          error: (error) => {
-            if (error.status === 500) {
-              this.errorMessage = 'Internal Server Error. Please try again later.'
+        from(requests).pipe(
+          mergeMap(req => req.pipe(catchError(() => EMPTY))),
+          toArray()
+        ).subscribe({
+          next: (results) => {
+            if (results.length > 0) {          
+              this.pokemons = results;
+              this.sortPokemons();
             } else {
-              this.errorMessage = 'Failed to load Pokemon details.';
+              this.errorMessage = navigator.onLine ? "No details returned (requests failed)." : "Offline - Pokémon details weren't cached yet.";
             }
-            console.error('Error fetching Pokemon details', error);
-            this.loading = false;  
+            this.loading = false;
+          },
+          error: (err) => {
+            this.loading = false;
+            this.errorMessage = navigator.onLine
+              ? 'Failed to load Pokémon details.'
+              : 'Offline – some Pokémon aren’t cached yet.';
+            console.error(err);
           }
         });
-      }, 
-      error: (error) => {
-        if (error.status === 500) {
-          this.errorMessage = 'Internal Server Error. Please try again later.'
-        } else {        
-          this.errorMessage = 'Failed to load Pokemon list.';
-        }
-        console.error('Error fetching Pokemon list', error);
+      },
+      error: (err) => {
         this.loading = false;
+        if (!navigator.onLine) {
+          this.errorMessage = "You're offline";
+          return;
+        }
+
+        this.errorMessage = navigator.onLine
+          ? 'Failed to load Pokémon list.'
+          : 'Offline – Pokémon list not cached yet.';
+        console.error(err);
       }
     });
   }
