@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Pokemon } from '../../core/services/pokemon.service';
+import { PokemonService } from '../../core/services/pokemon.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PokemonDetails, PokemonListResult } from '../../shared/types/pokemon.model';
@@ -18,7 +18,7 @@ export class PokemonList implements OnInit {
   loading: boolean = false;
   errorMessage: string | null = null;
 
-  constructor(private pokemonService: Pokemon) {}
+  constructor(private pokemonService: PokemonService) {}
 
   ngOnInit(): void {
     this.fetchRandomPokemons();
