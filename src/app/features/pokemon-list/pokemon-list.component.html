@@ -32,4 +32,7 @@
     }
   </ul>
 }
-<button class="floating-button" (click)="fetchRandomPokemons()" *ngIf="!loading">Reload</button>
+
+@if (!loading) {
+  <button class="floating-button" (click)="fetchRandomPokemons()">Reload</button>
+}
