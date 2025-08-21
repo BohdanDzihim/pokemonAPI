@@ -3,7 +3,7 @@ import { PokemonService } from '../../core/services/pokemon.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PokemonDetails, PokemonListResult } from '../../shared/types/pokemon.model';
-import { from, mergeMap, catchError, EMPTY, toArray } from 'rxjs';
+import { from, mergeMap, catchError, EMPTY, toArray, forkJoin, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -65,44 +65,25 @@ export class PokemonList implements OnInit {
     this.pokemonService.getPokemons(limit, offset).subscribe({
       next: (data) => {
         const list = data.results;
-        const hasPikachu = list.some(e => e.name.toLowerCase() === 'pikachu');
         const requests = [
-          ...(hasPikachu ? [] : [this.pokemonService.getPokemonDetails('https://pokeapi.co/api/v2/pokemon/25/')]),
+          ...(list.some(e => e.name.toLowerCase() === 'pikachu') ? [] : [this.pokemonService.getPokemonDetails('https://pokeapi.co/api/v2/pokemon/25/')]),
           ...list.map((e: PokemonListResult) => this.pokemonService.getPokemonDetails(e.url))
         ];
 
-        from(requests).pipe(
-          mergeMap(req => req.pipe(catchError(() => EMPTY))),
-          toArray()
-        ).subscribe({
-          next: (results) => {
-            if (results.length > 0) {          
-              this.pokemons = results;
-              this.sortPokemons();
-            } else {
-              this.errorMessage = navigator.onLine ? "No details returned (requests failed)." : "Offline - Pokémon details weren't cached yet.";
-            }
+        forkJoin(requests as Observable<PokemonDetails>[]).subscribe({
+          next: (results: PokemonDetails[]) => {
+            this.pokemons = results;
+            this.sortPokemons();
             this.loading = false;
           },
-          error: (err) => {
-            this.loading = false;
-            this.errorMessage = navigator.onLine
-              ? 'Failed to load Pokémon details.'
-              : 'Offline – some Pokémon aren’t cached yet.';
-            console.error(err);
-          }
         });
       },
       error: (err) => {
         this.loading = false;
         if (!navigator.onLine) {
-          this.errorMessage = "You're offline";
+          this.errorMessage = "You're offline. PLease check your internet connection.";
           return;
         }
-
-        this.errorMessage = navigator.onLine
-          ? 'Failed to load Pokémon list.'
-          : 'Offline – Pokémon list not cached yet.';
         console.error(err);
       }
     });
