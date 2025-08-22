@@ -3,10 +3,10 @@ import { PokemonService } from '../../core/services/pokemon.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PokemonDetails, PokemonListResult } from '../../shared/types/pokemon.model';
-import { from, mergeMap, catchError, EMPTY, toArray, forkJoin, Observable } from 'rxjs';
+import { forkJoin, switchMap } from 'rxjs';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-pokemon-list',
   imports: [CommonModule, RouterModule],
   templateUrl: './pokemon-list.component.html',
   styleUrls: ['./pokemon-list.component.scss']
@@ -41,6 +41,16 @@ export class PokemonList implements OnInit {
     this.pokemons = sorted;
   }
 
+  hasPikachu(list: PokemonListResult[]): boolean {
+    return list.some(pokemon => pokemon.name?.toLowerCase() === 'pikachu');
+  }
+
+  randomizeOffsetAndLimit(): { offset: number, limit: number} {
+    const offset = Math.floor(Math.random() * 100);
+    const limit = Math.floor(Math.random() * 6) + 10;
+    return {offset, limit};
+  }
+
   setSortOrder(order: 'name' | 'moves', sortDirection: 'asc' | 'desc' = 'asc'
   ) {
     this.sortDirection = sortDirection === 'asc' ? 'asc' : 'desc';
@@ -58,32 +68,38 @@ export class PokemonList implements OnInit {
   fetchRandomPokemons(): void {
     this.loading = true;
     this.errorMessage = null;
-  
-    const offset = Math.floor(Math.random() * 100);
-    const limit = Math.floor(Math.random() * 6) + 10;
 
-    this.pokemonService.getPokemons(limit, offset).subscribe({
-      next: (data) => {
-        const list = data.results;
-        const requests = [
-          ...(list.some(e => e.name.toLowerCase() === 'pikachu') ? [] : [this.pokemonService.getPokemonDetails('https://pokeapi.co/api/v2/pokemon/25/')]),
-          ...list.map((e: PokemonListResult) => this.pokemonService.getPokemonDetails(e.url))
-        ];
+    const { offset, limit } = this.randomizeOffsetAndLimit();
 
-        forkJoin(requests as Observable<PokemonDetails>[]).subscribe({
-          next: (results: PokemonDetails[]) => {
-            this.pokemons = results;
-            this.sortPokemons();
-            this.loading = false;
-          },
-        });
+    this.pokemonService.getPokemons(limit, offset).pipe(
+      switchMap((data) => {
+        const requests = data.results.map((e: PokemonListResult) => this.pokemonService.getPokemonDetails(e.url));
+        if (!this.hasPikachu(data.results)) {
+          requests.push(this.pokemonService.getPokemonDetailsByName('pikachu'));
+        }
+        return forkJoin(requests);
+      })
+    ).subscribe({
+      next: (results) => {
+        if (results.length > 0) {          
+          this.pokemons = results;
+          this.sortPokemons();
+        } else {
+          this.errorMessage = navigator.onLine ? "No details returned (requests failed)." : "Offline - Pokémon details weren't cached yet.";
+        }
+        this.loading = false;
       },
+      
       error: (err) => {
         this.loading = false;
         if (!navigator.onLine) {
-          this.errorMessage = "You're offline. PLease check your internet connection.";
+          this.errorMessage = "You're offline. Please check your internet connection.";
           return;
         }
+
+        this.errorMessage = navigator.onLine
+          ? 'Failed to load Pokémon list.'
+          : 'Offline – Pokémon list not cached yet.';
         console.error(err);
       }
     });
