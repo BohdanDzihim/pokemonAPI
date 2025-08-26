@@ -65,6 +65,29 @@ export class PokemonList implements OnInit {
     this.setSortOrder(sortBy, sortDirection);
   }
 
+  private handleError = (customMessage?: string) => (error: any): void => {
+    this.loading = false;
+
+    if (!navigator.onLine) {
+      this.errorMessage = "You're offline. Please check your internet connection.";
+      console.error('Offline error:', error);
+      return;
+    }
+
+    this.errorMessage = customMessage || 'An error occurred. Please try again.';
+    console.error('Error', error);
+  }
+
+  private handleNext = () => (results: PokemonDetails[]): void => {
+    if (results.length > 0) {          
+          this.pokemons = results;
+          this.sortPokemons();
+        } else {
+          this.errorMessage = navigator.onLine ? "No details returned (requests failed)." : "Offline - Pokémon details weren't cached yet.";
+        }
+        this.loading = false;
+  }
+
   fetchRandomPokemons(): void {
     this.loading = true;
     this.errorMessage = null;
@@ -73,35 +96,16 @@ export class PokemonList implements OnInit {
 
     this.pokemonService.getPokemons(limit, offset).pipe(
       switchMap((data) => {
-        const requests = data.results.map((e: PokemonListResult) => this.pokemonService.getPokemonDetails(e.url));
+        const requests = data.results.map((e: PokemonListResult) => this.pokemonService.getPokemonDetailsByName(e.name));
+        
         if (!this.hasPikachu(data.results)) {
           requests.push(this.pokemonService.getPokemonDetailsByName('pikachu'));
         }
         return forkJoin(requests);
       })
     ).subscribe({
-      next: (results) => {
-        if (results.length > 0) {          
-          this.pokemons = results;
-          this.sortPokemons();
-        } else {
-          this.errorMessage = navigator.onLine ? "No details returned (requests failed)." : "Offline - Pokémon details weren't cached yet.";
-        }
-        this.loading = false;
-      },
-      
-      error: (err) => {
-        this.loading = false;
-        if (!navigator.onLine) {
-          this.errorMessage = "You're offline. Please check your internet connection.";
-          return;
-        }
-
-        this.errorMessage = navigator.onLine
-          ? 'Failed to load Pokémon list.'
-          : 'Offline – Pokémon list not cached yet.';
-        console.error(err);
-      }
+      next: this.handleNext(),      
+      error: this.handleError(),
     });
   }
 }
