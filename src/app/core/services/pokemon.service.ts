@@ -18,6 +18,10 @@ export class PokemonService {
     return this.http.get<PokemonListResponse>(`${PokemonService.BASE_URL}${PokemonService.ENDPOINTS.POKEMON}?limit=${limit}&offset=${offset}`);
   }
 
+  getPikachu(): Observable<PokemonDetails> {
+    return this.http.get<PokemonDetails>(`${PokemonService.BASE_URL}${PokemonService.ENDPOINTS.POKEMON}/pikachu`);
+  }
+
   getPokemonDetailsByName(name?: string, id?: number): Observable<PokemonDetails> {
     return this.http.get<PokemonDetails>(`${PokemonService.BASE_URL}${PokemonService.ENDPOINTS.POKEMON}/${name || id}`);
   }

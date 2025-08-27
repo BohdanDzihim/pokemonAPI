@@ -99,7 +99,7 @@ export class PokemonList implements OnInit {
         const requests = data.results.map((e: PokemonListResult) => this.pokemonService.getPokemonDetailsByName(e.name));
         
         if (!this.hasPikachu(data.results)) {
-          requests.push(this.pokemonService.getPokemonDetailsByName('pikachu'));
+          requests.push(this.pokemonService.getPikachu());
         }
         return forkJoin(requests);
       })
