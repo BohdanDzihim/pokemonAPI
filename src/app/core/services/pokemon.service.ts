@@ -13,16 +13,17 @@ export class PokemonService {
   static readonly ENDPOINTS = {
     POKEMON: 'pokemon',
   } as const;
+  static readonly DEFAULT_POKEMON = 'pikachu';
 
   getPokemons(limit: number, offset: number): Observable<PokemonListResponse> {
     return this.http.get<PokemonListResponse>(`${PokemonService.BASE_URL}${PokemonService.ENDPOINTS.POKEMON}?limit=${limit}&offset=${offset}`);
   }
 
-  getPikachu(): Observable<PokemonDetails> {
-    return this.http.get<PokemonDetails>(`${PokemonService.BASE_URL}${PokemonService.ENDPOINTS.POKEMON}/pikachu`);
-  }
-
   getPokemonDetailsByName(name?: string, id?: number): Observable<PokemonDetails> {
     return this.http.get<PokemonDetails>(`${PokemonService.BASE_URL}${PokemonService.ENDPOINTS.POKEMON}/${name || id}`);
+  }
+
+  getPikachu(): Observable<PokemonDetails> {
+    return this.getPokemonDetailsByName(PokemonService.DEFAULT_POKEMON);
   }
 }
