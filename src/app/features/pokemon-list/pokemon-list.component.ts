@@ -41,8 +41,8 @@ export class PokemonList implements OnInit {
     this.pokemons = sorted;
   }
 
-  hasPikachu(list: PokemonListResult[]): boolean {
-    return list.some(pokemon => pokemon.name?.toLowerCase() === 'pikachu');
+  hasDefaultPokemon(list: PokemonListResult[]): boolean {
+    return list.some(pokemon => pokemon.name?.toLowerCase() === PokemonService.DEFAULT_POKEMON);
   }
 
   randomizeOffsetAndLimit(): { offset: number, limit: number} {
@@ -98,8 +98,8 @@ export class PokemonList implements OnInit {
       switchMap((data) => {
         const requests = data.results.map((e: PokemonListResult) => this.pokemonService.getPokemonDetailsByName(e.name));
         
-        if (!this.hasPikachu(data.results)) {
-          requests.push(this.pokemonService.getPikachu());
+        if (!this.hasDefaultPokemon(data.results)) {
+          requests.push(this.pokemonService.getPokemonDetailsByName(PokemonService.DEFAULT_POKEMON));
         }
         return forkJoin(requests);
       })

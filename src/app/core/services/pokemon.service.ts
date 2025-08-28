@@ -22,8 +22,4 @@ export class PokemonService {
   getPokemonDetailsByName(name?: string, id?: number): Observable<PokemonDetails> {
     return this.http.get<PokemonDetails>(`${PokemonService.BASE_URL}${PokemonService.ENDPOINTS.POKEMON}/${name || id}`);
   }
-
-  getPikachu(): Observable<PokemonDetails> {
-    return this.getPokemonDetailsByName(PokemonService.DEFAULT_POKEMON);
-  }
 }
