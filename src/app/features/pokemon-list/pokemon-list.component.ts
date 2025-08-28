@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { Pokemon } from '../../core/services/pokemon.service';
+import { PokemonService } from '../../core/services/pokemon.service';
 import { CommonModule } from '@angular/common';
-import { forkJoin, Observable } from 'rxjs';
 import { RouterModule } from '@angular/router';
 import { PokemonDetails, PokemonListResult } from '../../shared/types/pokemon.model';
+import { forkJoin, switchMap } from 'rxjs';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-pokemon-list',
   imports: [CommonModule, RouterModule],
   templateUrl: './pokemon-list.component.html',
   styleUrls: ['./pokemon-list.component.scss']
@@ -18,7 +18,7 @@ export class PokemonList implements OnInit {
   loading: boolean = false;
   errorMessage: string | null = null;
 
-  constructor(private pokemonService: Pokemon) {}
+  constructor(private pokemonService: PokemonService) {}
 
   ngOnInit(): void {
     this.fetchRandomPokemons();
@@ -41,6 +41,16 @@ export class PokemonList implements OnInit {
     this.pokemons = sorted;
   }
 
+  hasDefaultPokemon(list: PokemonListResult[]): boolean {
+    return list.some(pokemon => pokemon.name?.toLowerCase() === PokemonService.DEFAULT_POKEMON);
+  }
+
+  randomizeOffsetAndLimit(): { offset: number, limit: number} {
+    const offset = Math.floor(Math.random() * 100);
+    const limit = Math.floor(Math.random() * 6) + 10;
+    return {offset, limit};
+  }
+
   setSortOrder(order: 'name' | 'moves', sortDirection: 'asc' | 'desc' = 'asc'
   ) {
     this.sortDirection = sortDirection === 'asc' ? 'asc' : 'desc';
@@ -55,48 +65,47 @@ export class PokemonList implements OnInit {
     this.setSortOrder(sortBy, sortDirection);
   }
 
+  private handleError = (customMessage?: string) => (error: any): void => {
+    this.loading = false;
+
+    if (!navigator.onLine) {
+      this.errorMessage = "You're offline. Please check your internet connection.";
+      console.error('Offline error:', error);
+      return;
+    }
+
+    this.errorMessage = customMessage || 'An error occurred. Please try again.';
+    console.error('Error', error);
+  }
+
+  private handleNext = () => (results: PokemonDetails[]): void => {
+    if (results.length > 0) {          
+          this.pokemons = results;
+          this.sortPokemons();
+        } else {
+          this.errorMessage = navigator.onLine ? "No details returned (requests failed)." : "Offline - Pokémon details weren't cached yet.";
+        }
+        this.loading = false;
+  }
+
   fetchRandomPokemons(): void {
     this.loading = true;
     this.errorMessage = null;
 
-    const randomOffset = Math.floor(Math.random() * 100);
-    const limit = Math.floor(Math.random() * 6) + 10;
+    const { offset, limit } = this.randomizeOffsetAndLimit();
 
-    this.pokemonService.getPokemons(limit, randomOffset).subscribe({
-      next: (data) => {
-        const list = data.results;
-
-        const detailRequests = list.map((element: PokemonListResult) =>
-          this.pokemonService.getPokemonDetails(element.url)
-        );
-
-        forkJoin(detailRequests as Observable<PokemonDetails>[]).subscribe({
-          next: (results: PokemonDetails[]) => {
-            this.pokemons = [...results];
-            this.sortPokemons();
-            console.log(this.pokemons);
-            this.loading = false;
-          }, 
-          error: (error) => {
-            if (error.status === 500) {
-              this.errorMessage = 'Internal Server Error. Please try again later.'
-            } else {
-              this.errorMessage = 'Failed to load Pokemon details.';
-            }
-            console.error('Error fetching Pokemon details', error);
-            this.loading = false;  
-          }
-        });
-      }, 
-      error: (error) => {
-        if (error.status === 500) {
-          this.errorMessage = 'Internal Server Error. Please try again later.'
-        } else {        
-          this.errorMessage = 'Failed to load Pokemon list.';
+    this.pokemonService.getPokemons(limit, offset).pipe(
+      switchMap((data) => {
+        const requests = data.results.map((e: PokemonListResult) => this.pokemonService.getPokemonDetailsByName(e.name));
+        
+        if (!this.hasDefaultPokemon(data.results)) {
+          requests.push(this.pokemonService.getPokemonDetailsByName(PokemonService.DEFAULT_POKEMON));
         }
-        console.error('Error fetching Pokemon list', error);
-        this.loading = false;
-      }
+        return forkJoin(requests);
+      })
+    ).subscribe({
+      next: this.handleNext(),      
+      error: this.handleError(),
     });
   }
 }

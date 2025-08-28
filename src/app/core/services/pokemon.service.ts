@@ -6,23 +6,20 @@ import { Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class Pokemon {
+export class PokemonService {
   constructor(private http: HttpClient) { }
 
   static readonly BASE_URL = 'https://pokeapi.co/api/v2/';
   static readonly ENDPOINTS = {
     POKEMON: 'pokemon',
   } as const;
+  static readonly DEFAULT_POKEMON = 'pikachu';
 
   getPokemons(limit: number, offset: number): Observable<PokemonListResponse> {
-    return this.http.get<PokemonListResponse>(`${Pokemon.BASE_URL}${Pokemon.ENDPOINTS.POKEMON}?limit=${limit}&offset=${offset}`);
+    return this.http.get<PokemonListResponse>(`${PokemonService.BASE_URL}${PokemonService.ENDPOINTS.POKEMON}?limit=${limit}&offset=${offset}`);
   }
 
-  getPokemonDetails(url: string): Observable<PokemonDetails> {
-    return this.http.get<PokemonDetails>(url);
-  }
-
-  getPokemonDetailsByName(name: string): Observable<PokemonDetails> {
-    return this.http.get<PokemonDetails>(`${Pokemon.BASE_URL}${Pokemon.ENDPOINTS.POKEMON}/${name}`);
+  getPokemonDetailsByName(name?: string, id?: number): Observable<PokemonDetails> {
+    return this.http.get<PokemonDetails>(`${PokemonService.BASE_URL}${PokemonService.ENDPOINTS.POKEMON}/${name || id}`);
   }
 }

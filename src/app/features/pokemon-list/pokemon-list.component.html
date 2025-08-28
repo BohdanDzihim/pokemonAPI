@@ -15,23 +15,24 @@
     <div class="error-box">
       {{ errorMessage }}
     </div>
-  } 
-  @else {
-    <ul class="pokemon-container">
-      @for (p of pokemons; track p.name) {
-        <li class="pokemon">
-          <a [routerLink]="['/pokemon', p.name]">
-            <img [src]="p.sprites.other.dream_world.front_default" alt="{{ p.name }}" />
-            <h1>{{ p.name | titlecase }}</h1>
-          </a>
-          <p>
-            @for (t of p.moves.slice(0,2); track t.move.name) {          
-              <h2 class="moves">{{ t.move.name }}</h2>
-            }
-          </p>
-        </li>
-      }
-    </ul>
   }
+  <ul class="pokemon-container">
+    @for (p of pokemons; track p.name) {
+      <li class="pokemon">
+        <a [routerLink]="['/pokemon', p.name]">
+          <img [src]="p.sprites.other.dream_world.front_default" alt="{{ p.name }}" />
+          <h1>{{ p.name | titlecase }}</h1>
+        </a>
+        <p>
+          @for (t of p.moves.slice(0,2); track t.move.name) {          
+            <h2 class="moves">{{ t.move.name }}</h2>
+          }
+        </p>
+      </li>
+    }
+  </ul>
 }
-<button class="floating-button" (click)="fetchRandomPokemons()" *ngIf="!loading">Reload</button>
+
+@if (!loading) {
+  <button class="floating-button" (click)="fetchRandomPokemons()">Reload</button>
+}
